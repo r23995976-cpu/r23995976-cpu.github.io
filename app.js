@@ -17,6 +17,8 @@ const board = createDrawingBoard(elements.canvas, elements.empty);
 let model, current;
 let score = 0;
 let round = 1;
+let nextQuestionTimer = null;
+let soundEnabled = true;
 
 function setFeedback(message, type = "") {
   elements.feedback.className = `feedback ${type}`.trim();
@@ -24,6 +26,7 @@ function setFeedback(message, type = "") {
 }
 
 function showQuestion() {
+  clearTimeout(nextQuestionTimer);
   current = makeQuestion(elements.operation.value, elements.multiDigit.checked);
   elements.question.textContent = `${current.a} ${current.operation} ${current.b} = ?`;
   elements.round.textContent = round;
@@ -32,24 +35,16 @@ function showQuestion() {
     : `Write all ${count} digits with a little space between them.`;
   board.reset();
   setFeedback("Write your answer, then choose Check answer.");
-  setTimeout(speakQuestion, 150);
 }
 
 function speakText(message, rate = 0.9) {
-  if (!("speechSynthesis" in window)) return;
+  if (!soundEnabled || !("speechSynthesis" in window)) return;
   try {
     speechSynthesis.cancel();
     const speech = new SpeechSynthesisUtterance(message);
     speech.rate = rate;
     speechSynthesis.speak(speech);
   } catch (_) {}
-}
-
-function speakQuestion() {
-  if (!current) return;
-  const word = { "+": "plus", "\u2212": "minus", "\u00d7": "times",
-    "\u00f7": "divided by" }[current.operation];
-  speakText(`${current.a} ${word} ${current.b}. What is the answer?`, 0.85);
 }
 
 function announce(message, type = "") {
@@ -78,8 +73,8 @@ async function predictAnswer(expected = String(current.answer).length) {
 }
 
 async function checkAnswer() {
-  if (!board.hasInk()) return announce("Write your answer in the chalk box first.", "error");
-  if (!model) return announce("The number model is still getting ready.", "error");
+  if (!board.hasInk()) return setFeedback("Write your answer in the chalk box first.", "error");
+  if (!model) return setFeedback("The number model is still getting ready.", "error");
   elements.check.disabled = true;
   setFeedback("Reading your chalk writing…");
   try {
@@ -87,11 +82,15 @@ async function checkAnswer() {
     if (result.answer === current.answer) {
       elements.score.textContent = ++score;
       announce(PRAISE[Math.floor(Math.random() * PRAISE.length)], "success");
-      setTimeout(() => { round++; showQuestion(); }, 2400);
+      nextQuestionTimer = setTimeout(() => { round++; showQuestion(); }, 2400);
     } else {
+      clearTimeout(nextQuestionTimer);
+      nextQuestionTimer = null;
       announce("Give it another try.", "error");
     }
   } catch (error) {
+    clearTimeout(nextQuestionTimer);
+    nextQuestionTimer = null;
     announce(error.message === "DIGITS_TOO_CLOSE"
       ? "Leave a little space between each digit so I can read them."
       : "I could not read every digit. Try writing a little bigger.", "error");
@@ -115,6 +114,7 @@ async function loadModel() {
 }
 
 function setTestQuestion(a, operation, b) {
+  clearTimeout(nextQuestionTimer);
   const answer = operation === "+" ? a + b : operation === "−" ? a - b
     : operation === "×" ? a * b : a / b;
   current = { a, b, operation, answer };
@@ -132,7 +132,15 @@ elements.clear.addEventListener("click", () => {
   setFeedback("Board cleared. Have another go!");
 });
 elements.check.addEventListener("click", checkAnswer);
-elements.sound.addEventListener("click", speakQuestion);
+elements.sound.addEventListener("click", () => {
+  soundEnabled = !soundEnabled;
+  if (!soundEnabled && "speechSynthesis" in window) speechSynthesis.cancel();
+  elements.sound.innerHTML = soundEnabled ? "&#128266; Sound on" : "&#128263; Muted";
+  elements.sound.setAttribute("aria-pressed", String(!soundEnabled));
+  elements.sound.setAttribute("aria-label", soundEnabled
+    ? "Mute spoken feedback" : "Enable spoken feedback");
+  elements.sound.title = soundEnabled ? "Sound on" : "Muted";
+});
 elements.info.addEventListener("click", () => elements.dialog.showModal());
 elements.closeDialog.addEventListener("click", () => elements.dialog.close());
 elements.dialog.addEventListener("click", event => {

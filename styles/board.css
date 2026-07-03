@@ -76,12 +76,16 @@
   letter-spacing: 0.1em;
 }
 .question {
+  max-width: 100%;
   margin: 8px 0 5px;
   color: var(--chalk);
-  font-size: clamp(2.4rem, 6vw, 4.8rem);
+  font-size: clamp(1.75rem, 4vw, 3.2rem);
   font-weight: 950;
-  letter-spacing: -0.07em;
-  white-space: nowrap;
+  line-height: 1.08;
+  letter-spacing: -0.045em;
+  overflow-wrap: normal;
+  text-wrap: balance;
+  white-space: normal;
 }
 .question-hint {
   margin: 0;
