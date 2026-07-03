@@ -1,0 +1,200 @@
+﻿<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#0B5D56" />
+    <meta
+      name="description"
+      content="A browser-only handwritten arithmetic practice prototype."
+    />
+    <title>Dipalo Tsa Motheo | Numbers</title>
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="icon" href="./assets/icon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="./styles/base.css" />
+  <link rel="stylesheet" href="./styles/controls.css" />
+  <link rel="stylesheet" href="./styles/board.css" />
+  <link rel="stylesheet" href="./styles/dialog-responsive.css" />
+    <!-- TensorFlow.js runs the converted number model in the learner's browser. -->
+    <script
+      defer
+      src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0/dist/tf.min.js"
+    ></script>
+  <script type="module" src="./app.js"></script>
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="topbar">
+        <a class="brand" href="./" aria-label="Dipalo Tsa Motheo home">
+          <span class="brand-mark" aria-hidden="true">D</span>
+          <span>
+            <strong>Dipalo Tsa Motheo</strong>
+            <small>Learn numbers by doing</small>
+          </span>
+        </a>
+        <span class="app-edition">Practice board</span>
+      </header>
+      <section class="control-panel" aria-label="Practice controls">
+        <div class="control-section action-section">
+          <span class="control-title">Tools</span>
+          <div class="tool-row">
+            <div class="operation-picker">
+              <label for="operationSelect">Choose practice</label>
+              <select id="operationSelect">
+                <option value="random">Random practice</option>
+                <option value="addition">Addition</option>
+                <option value="subtraction">Subtraction</option>
+                <option value="multiplication">Multiplication</option>
+                <option value="division">Division</option>
+              </select>
+            </div>
+            <div class="tool-buttons">
+            <button
+              id="soundButton"
+              class="icon-button"
+              type="button"
+              aria-label="Read question aloud"
+              title="Read question aloud"
+            >
+              &#128266; Listen
+            </button>
+            <button
+              id="infoButton"
+              class="icon-button"
+              type="button"
+              aria-label="How to use the app"
+              title="How to use the app"
+            >
+              Help
+            </button>
+            </div>
+          </div>
+        </div>
+        <div class="control-section progress-card" aria-label="Your progress">
+          <span class="control-title">Progress</span><div class="progress-stats">
+            <div class="progress-stat">
+              <span class="progress-label">Correct</span><strong id="scoreValue">0</strong>
+            </div>
+            <div class="progress-stat">
+              <span class="progress-label">Question</span><strong id="roundValue">1</strong>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section class="practice-board">
+        <div class="board-topline">
+          <span class="board-label">Solve on the board</span>
+          <label class="level-toggle">
+            <input id="multiDigitToggle" type="checkbox" />
+            <span>Up to 3 digits</span>
+          </label>
+          <span id="modelBadge" class="status-badge status-loading"
+            >Loading number brain…</span
+          >
+        </div>
+        <div class="board-workspace">
+          <div class="board-question">
+            <span class="chalk-caption">Question</span>
+            <div id="question" class="question" aria-live="polite">
+              2 + 3 = ?
+            </div>
+            <p id="questionHint" class="question-hint">Write one digit.</p>
+          </div>
+          <div class="board-answer">
+            <span class="chalk-caption">Your answer</span>
+            <div class="canvas-frame">
+              <canvas
+                id="drawCanvas"
+                width="700"
+                height="300"
+                aria-label="Drawing area for your answer"
+              ></canvas>
+              <div
+                id="canvasEmptyMessage"
+                class="canvas-empty-message"
+                aria-hidden="true"
+              >
+                Kwala ha
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="board-footer">
+          <p id="feedback" class="feedback" role="status" aria-live="polite">
+            The handwriting model is getting ready.
+          </p>
+          <div class="canvas-actions">
+            <button
+              id="clearButton"
+              class="button button-secondary"
+              type="button"
+            >
+              Clear
+            </button>
+            <button
+              id="checkButton"
+              class="button button-primary"
+              type="button"
+              disabled
+            >
+              Check answer
+            </button>
+          </div>
+        </div>
+      </section>
+      <section class="privacy-note">
+        <span aria-hidden="true">&#128274;</span>
+        <p>
+          <strong>Private by design:</strong> your writing stays here. The
+          number model runs on this device.
+        </p>
+      </section>
+      <footer class="footer">
+        <span>© 2023 Dipalo Tsa Motheo · Version 2</span>
+        <span id="modelMeta">Private, on-device checking</span>
+      </footer>
+    </main>
+    <dialog id="infoDialog" class="info-dialog" aria-labelledby="infoTitle">
+      <div class="dialog-heading">
+        <div>
+          <span class="dialog-kicker">Quick guide</span>
+          <h2 id="infoTitle">How to practise</h2>
+        </div>
+        <button id="closeInfoButton" type="button" aria-label="Close help">
+          ×
+        </button>
+      </div>
+      <ol class="guide-steps">
+        <li>
+          <span>1</span>
+          <div>
+            <strong>Look</strong>
+            <p>Read the question shown on the chalkboard.</p>
+          </div>
+        </li>
+        <li>
+          <span>2</span>
+          <div>
+            <strong>Write</strong>
+            <p>Use your finger, stylus, or mouse to write the answer.</p>
+          </div>
+        </li>
+        <li>
+          <span>3</span>
+          <div>
+            <strong>Check</strong>
+            <p>Choose the Check answer button and try again if needed.</p>
+          </div>
+        </li>
+      </ol>
+      <p class="dialog-privacy">Your handwriting stays on this device.</p>
+    </dialog>
+    <noscript
+      >This prototype needs JavaScript enabled to load the handwriting
+      model.</noscript
+    >
+  </body>
+</html>

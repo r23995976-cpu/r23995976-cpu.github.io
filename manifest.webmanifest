@@ -1,0 +1,9 @@
+{
+  "name": "Dipalo Tsa Motheo",
+  "short_name": "Dipalo",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#F7F5EE",
+  "theme_color": "#0B5D56",
+  "description": "Browser-only handwritten arithmetic practice."
+}
